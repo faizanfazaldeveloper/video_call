@@ -4,6 +4,26 @@ A minimal video calling app built with **mediasoup** (SFU), **Node.js**, and **N
 
 ---
 
+## Demo
+
+**▶️ [Watch the 44-second walkthrough](https://drive.google.com/file/d/1Y8mkySOdFkZVl174VDZvVjZoUOroVYaj/view?usp=drive_link)**
+· [download from this repo](docs/demo/video_call_demo.mp4)
+
+A single unedited run against the local stack, showing both participants
+side by side so you can see each action land on the other end:
+
+| Time | |
+| --- | --- |
+| 0:00 | Host creates a meeting — the room is locked by default |
+| 0:05 | Guest joins by code and is held in the lobby |
+| 0:10 | Host admits — WebRTC negotiates, both streams go live |
+| 0:15 | Real-time in-call chat, both directions |
+| 0:25 | Screen sharing — publishes as a second producer, layout adapts |
+| 0:34 | Host force-mutes a participant (one-way, by design) |
+| 0:39 | Host removes a participant |
+
+---
+
 ## Screenshots
 
 Captured from a real two-participant call running against the local stack. Video is
@@ -273,19 +293,38 @@ All client ↔ server signaling goes over Socket.io. Requests use the ack-callba
 
 ## Running locally
 
-Two terminals:
+**1. Start MongoDB.** A compose file is included, so you don't need a local install:
+
+```bash
+docker compose up -d          # MongoDB on 127.0.0.1:27017
+docker compose logs -f mongodb   # tail logs
+docker compose down           # stop (data persists in the named volume)
+```
+
+It comes up as `videocall-mediasoup`, matching the default `MONGODB_URI` in
+`server/.env.example`. The port is bound to loopback only — the container runs
+without authentication so it matches the credential-less default URI, so don't
+publish it to `0.0.0.0` without enabling auth first (see the commented block in
+`docker-compose.yml`).
+
+**2. Start the two services**, in two terminals:
 
 ```bash
 # terminal 1 — signaling + SFU
 cd server
-npm install
-npm run dev     # listens on http://localhost:4000
+pnpm install
+pnpm dev        # listens on http://localhost:4000
 
 # terminal 2 — Next.js
 cd client
 npm install
 npm run dev     # listens on http://localhost:3000
 ```
+
+> `server/` uses **pnpm**, not npm. pnpm 10+ blocks dependency build scripts by
+> default, so `pnpm-workspace.yaml` allows mediasoup's — without it the native
+> worker binary is silently skipped and `createWorker()` fails at boot with
+> `ENOENT`.
 
 Open `http://localhost:3000` in two browser windows (or one regular + one incognito so they get separate camera sessions). Click **Create new meeting** in one, copy the invite link, and paste it into the other.
 
