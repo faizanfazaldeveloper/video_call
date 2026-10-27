@@ -22,6 +22,9 @@ const mongoClient = new MongoClient(MONGO_URI);
 mongoClient.connect().catch(console.error);
 const db = mongoClient.db();
 
+const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:4000';
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+
 const auth = betterAuth({
   database: mongodbAdapter(db),
   emailAndPassword: {
@@ -30,8 +33,13 @@ const auth = betterAuth({
   plugins: [
     anonymous()
   ],
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:4000',
-  trustedOrigins: [process.env.CLIENT_ORIGIN || 'http://localhost:3000']
+  baseURL,
+  trustedOrigins: [clientOrigin],
+  // Nginx terminates TLS and talks to Node over HTTP. Secure cookies follow the
+  // public URL, otherwise the browser drops the session on an HTTPS page.
+  advanced: {
+    useSecureCookies: baseURL.startsWith('https://'),
+  },
 });
 
 module.exports = { auth, toNodeHandler };

@@ -1,7 +1,9 @@
 const os = require('os');
 
 module.exports = {
-  listenIp: '0.0.0.0',
+  // HTTP/Socket.io only. mediasoup RTP stays on 0.0.0.0 (see webRtcTransportOptions).
+  // Production deploy sets HTTP_LISTEN_IP=127.0.0.1 so Nginx is the only public entry.
+  listenIp: process.env.HTTP_LISTEN_IP || '0.0.0.0',
   listenPort: process.env.PORT || 4000,
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
 
