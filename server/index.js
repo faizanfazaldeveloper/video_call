@@ -50,6 +50,8 @@ async function main() {
   await createWorkers();
 
   const app = express();
+  // Nginx sets X-Forwarded-* . Trust the local proxy so the secure scheme is visible.
+  app.set('trust proxy', 'loopback');
   app.use(cors({ origin: config.clientOrigin, credentials: true }));
   app.use(express.json());
 
